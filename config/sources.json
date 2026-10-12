@@ -1,0 +1,28 @@
+{
+  "sources": [
+    {
+      "id": "lumitlink-amamiyasaku",
+      "name": "雨宮サク / lumitlink",
+      "service": "lumitlink",
+      "kind": "entity",
+      "endpoint": "https://lumitlink.aooba.net/api/v1/entities/amamiyasaku",
+      "enabled": true
+    },
+    {
+      "id": "lumitree-ilife-official",
+      "name": "iLiFE! public calendar / lumitree",
+      "service": "lumitree",
+      "kind": "lumitree_calendar",
+      "endpoint": "https://lumitree.aooba.net/api/v1/calendars/ilife_official/events",
+      "enabled": true
+    },
+    {
+      "id": "lumidive-plkt1022",
+      "name": "plkt1022 / lumidive",
+      "service": "lumidive",
+      "kind": "lumidive_event",
+      "endpoint": "https://lumidive.aooba.net/api/v1/events/plkt1022",
+      "enabled": true
+    }
+  ]
+}

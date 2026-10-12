@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lumi-exporter
+  labels:
+    app.kubernetes.io/name: lumi-exporter
+    app.kubernetes.io/part-of: lumi-series
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: lumi-exporter
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+      protocol: TCP

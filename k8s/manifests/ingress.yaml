@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lumi-exporter
+  labels:
+    app.kubernetes.io/name: lumi-exporter
+    app.kubernetes.io/part-of: lumi-series
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+    - host: lumi-exporter.aooba.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: lumi-exporter
+                port:
+                  number: 8081

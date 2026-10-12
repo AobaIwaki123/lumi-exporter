@@ -1,0 +1,10 @@
+.git
+.github
+*.test
+coverage.out
+.DS_Store
+README.md
+adr
+note
+space
+testdata

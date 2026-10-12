@@ -16,5 +16,8 @@ GOCACHE="$go_cache" go test -race -cover ./...
 GOCACHE="$go_cache" go build -trimpath -o /tmp/lumi-exporter-verify ./cmd/lumi-exporter
 GOCACHE="$go_cache" go run ./cmd/lumi-exporter -input testdata/evaluation.json >/tmp/lumi-exporter-analysis.json
 test -s /tmp/lumi-exporter-analysis.json
+kubectl kustomize k8s/manifests >/tmp/lumi-exporter-k8s.yaml
+test -s /tmp/lumi-exporter-k8s.yaml
+ruby -ryaml -e 'YAML.load_file("internal/web/assets/openapi.yaml"); YAML.load_file("k8s/manifests/kustomization.yaml")'
 
 printf 'lumi-exporter verification passed\n'

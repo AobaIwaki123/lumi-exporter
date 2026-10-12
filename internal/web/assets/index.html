@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>lumi-exporter catalog</title>
+  <style>
+    :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; background: #10131a; color: #e8edf5; }
+    body { max-width: 1180px; margin: 0 auto; padding: 28px 18px 56px; }
+    header { display: flex; gap: 16px; justify-content: space-between; align-items: end; flex-wrap: wrap; margin-bottom: 24px; }
+    h1, h2, h3 { margin: 0; }
+    h1 { font-size: clamp(1.5rem, 4vw, 2.4rem); letter-spacing: -0.04em; }
+    h2 { font-size: 1.1rem; margin-bottom: 12px; }
+    p { color: #aeb8c8; line-height: 1.6; }
+    button { border: 1px solid #7184a5; border-radius: 8px; padding: 9px 14px; background: #243451; color: #fff; cursor: pointer; }
+    button:hover { background: #2d4268; }
+    .meta { display: flex; gap: 8px; flex-wrap: wrap; color: #9aa8bd; font-size: .85rem; }
+    .pill { border: 1px solid #36445c; border-radius: 999px; padding: 3px 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 14px; }
+    .card { border: 1px solid #2b374b; border-radius: 12px; padding: 16px; background: #171d27; min-width: 0; }
+    .card.ok { border-color: #347b63; }
+    .card.error { border-color: #9b4c58; }
+    .card h3 { overflow-wrap: anywhere; }
+    .status { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .ok-text { color: #7de2b8; } .error-text { color: #ff9ca8; } .muted { color: #95a2b7; }
+    .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: .88rem; margin: 12px 0; }
+    .facts dt { color: #93a4bf; } .facts dd { margin: 0; overflow-wrap: anywhere; }
+    .entity { display: flex; gap: 12px; align-items: center; margin: 12px 0; }
+    .entity img { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: #252e3e; }
+    .events { display: grid; gap: 8px; margin-top: 12px; }
+    .event { border-left: 3px solid #688bc8; padding: 7px 10px; background: #202837; }
+    .event strong { display: block; overflow-wrap: anywhere; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; color: #abc2ef; }
+    pre { max-height: 300px; overflow: auto; padding: 12px; border-radius: 8px; background: #0d1015; color: #c4d0e3; font-size: .75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+    code { color: #c4d0e3; }
+    .wide { margin-top: 22px; }
+    .notice { border-left: 3px solid #c3a35e; padding: 10px 12px; background: #272317; color: #dbc990; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>lumi-exporter catalog</h1>
+      <p>登録済みlumiサービスをpullし、lumi-specの共通データとして描画します。</p>
+    </div>
+    <button id="refresh">pullして更新</button>
+  </header>
+  <div class="notice">この画面はモックデータを使いません。各カードのHTTPステータス、取得時間、正規化結果、生JSONを確認できます。</div>
+  <section class="wide">
+    <div class="status"><h2>登録ソース</h2><span id="summary" class="meta"></span></div>
+    <div id="cards" class="grid"><p>取得中です。</p></div>
+  </section>
+  <section class="wide">
+    <h2>検証用コマンド</h2>
+    <pre><code>kubectl logs -f deployment/lumi-exporter -n lumi-exporter</code></pre>
+  </section>
+  <section class="wide">
+    <details><summary>catalogの生JSON</summary><pre id="raw">未取得</pre></details>
+  </section>
+  <script>
+    const cards = document.getElementById('cards');
+    const summary = document.getElementById('summary');
+    const raw = document.getElementById('raw');
+    const escapeHTML = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+    const json = (value) => escapeHTML(JSON.stringify(value, null, 2));
+    function entityBlock(entity) {
+      if (!entity) return '';
+      const icon = (entity.assets || []).find((asset) => asset.kind === 'icon');
+      const socials = (entity.social_links || []).map((link) => `<a href="${escapeHTML(link.url)}" target="_blank" rel="noreferrer">${escapeHTML(link.platform)}</a>`).join(' · ');
+      return `<div class="entity">${icon ? `<img src="${escapeHTML(icon.url)}" alt="${escapeHTML(icon.alt || entity.name)}">` : '<div class="entity img"></div>'}<div><h3>${escapeHTML(entity.name)}</h3><div class="muted">${escapeHTML(entity.kind)}${socials ? ` · ${socials}` : ''}</div></div></div>`;
+    }
+    function eventBlock(events) {
+      if (!events || !events.length) return '';
+      return `<div class="events">${events.slice(0, 12).map((event) => `<div class="event"><strong>${escapeHTML(event.title)}</strong><span class="muted">${escapeHTML(event.local_date)}${event.venue ? ` · ${escapeHTML(event.venue)}` : ''}</span></div>`).join('')}</div>`;
+    }
+    function render(result) {
+      const ok = !result.error;
+      const status = result.status_code ? `${result.status_code}` : '未取得';
+      const data = result.entity || (result.entities || [])[0];
+      return `<article class="card ${ok ? 'ok' : 'error'}"><div class="status"><strong>${escapeHTML(result.source.name)}</strong><span class="${ok ? 'ok-text' : 'error-text'}">${escapeHTML(status)}</span></div><dl class="facts"><dt>service</dt><dd>${escapeHTML(result.source.service)}</dd><dt>kind</dt><dd>${escapeHTML(result.source.kind)}</dd><dt>duration</dt><dd>${escapeHTML(result.duration_ms)} ms</dd><dt>endpoint</dt><dd>${escapeHTML(result.source.endpoint)}</dd></dl>${result.error ? `<p class="error-text">${escapeHTML(result.error)}</p>` : ''}${entityBlock(data)}${eventBlock(result.events)}<details><summary>正規化データ</summary><pre>${json(result.entity || result.entities || result.events || {})}</pre></details><details><summary>生JSON</summary><pre>${json(result.raw || {})}</pre></details></article>`;
+    }
+    async function load() {
+      cards.innerHTML = '<p>pull中です。</p>';
+      try {
+        const response = await fetch('/api/v1/catalog', {cache: 'no-store'});
+        const payload = await response.json();
+        raw.textContent = JSON.stringify(payload, null, 2);
+        cards.innerHTML = (payload.results || []).map(render).join('') || '<p>登録ソースがありません。</p>';
+        const ok = (payload.results || []).filter((item) => !item.error).length;
+        summary.innerHTML = `<span class="pill">${ok}/${(payload.results || []).length} success</span><span class="pill">${escapeHTML(payload.pulled_at)}</span>`;
+      } catch (error) {
+        cards.innerHTML = `<p class="error-text">catalog取得失敗: ${escapeHTML(error.message)}</p>`;
+      }
+    }
+    document.getElementById('refresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>

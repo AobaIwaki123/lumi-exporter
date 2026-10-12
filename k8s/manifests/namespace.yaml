@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: lumi-exporter
+  labels:
+    app.kubernetes.io/name: lumi-exporter
+    app.kubernetes.io/part-of: lumi-series

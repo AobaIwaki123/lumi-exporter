@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lumi-exporter-sources
+  labels:
+    app.kubernetes.io/name: lumi-exporter
+    app.kubernetes.io/part-of: lumi-series
+data:
+  sources.json: |
+    {
+      "sources": [
+        {
+          "id": "lumitlink-amamiyasaku",
+          "name": "雨宮サク / lumitlink",
+          "service": "lumitlink",
+          "kind": "entity",
+          "endpoint": "http://lumitlink.lumitlink.svc.cluster.local:8080/api/v1/entities/amamiyasaku",
+          "enabled": true
+        },
+        {
+          "id": "lumitree-ilife-official",
+          "name": "iLiFE! public calendar / lumitree",
+          "service": "lumitree",
+          "kind": "lumitree_calendar",
+          "endpoint": "https://lumitree.aooba.net/api/v1/calendars/ilife_official/events",
+          "enabled": true
+        },
+        {
+          "id": "lumidive-plkt1022",
+          "name": "plkt1022 / lumidive",
+          "service": "lumidive",
+          "kind": "lumidive_event",
+          "endpoint": "https://lumidive.aooba.net/api/v1/events/plkt1022",
+          "enabled": true
+        }
+      ]
+    }

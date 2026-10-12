@@ -1,0 +1,32 @@
+openapi: 3.0.3
+info:
+  title: "lumi-exporter catalog API"
+  version: "0.2.0"
+  description: "登録済みlumiサービスをpullし、lumi-specの共通データを返す薄いWebサービス。"
+paths:
+  /healthz:
+    get:
+      responses:
+        "200":
+          description: "サービスが稼働中"
+  /api/v1/sources:
+    get:
+      responses:
+        "200":
+          description: "登録ソース一覧"
+  /api/v1/catalog:
+    get:
+      responses:
+        "200":
+          description: "全登録ソースをpullした結果"
+  /api/v1/sources/{sourceId}/pull:
+    get:
+      parameters:
+        - name: "sourceId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        "200":
+          description: "指定ソースをpullした結果"

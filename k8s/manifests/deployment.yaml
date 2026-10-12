@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lumi-exporter
+  labels:
+    app.kubernetes.io/name: lumi-exporter
+    app.kubernetes.io/part-of: lumi-series
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: lumi-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: lumi-exporter
+        app.kubernetes.io/part-of: lumi-series
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 15
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: lumi-exporter
+          image: ghcr.io/aobaiwaki123/lumi-exporter:dev
+          imagePullPolicy: IfNotPresent
+          args:
+            - "-serve"
+            - "-registry"
+            - "/config/sources.json"
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: LUMI_EXPORTER_HOST
+              value: "0.0.0.0"
+            - name: LUMI_EXPORTER_PORT
+              value: "8081"
+            - name: LUMI_EXPORTER_UPSTREAM_TIMEOUT
+              value: "15s"
+          volumeMounts:
+            - name: source-registry
+              mountPath: /config
+              readOnly: true
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+      volumes:
+        - name: source-registry
+          configMap:
+            name: lumi-exporter-sources

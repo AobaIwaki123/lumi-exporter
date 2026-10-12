@@ -19,14 +19,16 @@
 | :--- | :--- | :--- | :--- |
 | **Step 1** | **調査・要件定義** | 相対評価、同率アラート、評価指標を定義 | 完了 |
 | **Step 2** | **設計・方針決定** | `lumi-spec`依存、特徴量、保留条件をADR化 | 完了 |
-| **Step 3** | **実装・スクリプト化** | Go matcher、fixture、評価CLI、検証スクリプト | 進行中 |
-| **Step 4** | **実データ評価** | lumitree/lumidiveのラベル付きfixtureを追加 | 未着手 |
+| **Step 3** | **実装・スクリプト化** | Go matcher、fixture、評価CLI、検証スクリプト | 完了 |
+| **Step 4** | **pullカタログ** | 登録済みlumiサービスのpull、共通化、簡易UI | 進行中 |
+| **Step 5** | **実データ評価** | lumitree/lumidiveのラベル付きfixtureを追加 | 未着手 |
 
 ---
 
 ## 決定事項 (ADR一覧)
 
 - [ADR 0001: 相対評価によるイベント名寄せPoC](adr/0001-relative-event-matching-poc.md)
+- [ADR 0002: 登録済みlumiサービスをpullする薄いWebサービス](adr/0002-pull-catalog-service.md)
 
 ---
 
@@ -36,3 +38,4 @@
 - [ ] lumitree/lumidiveの実データを匿名化した評価fixtureへ追加する
 - [ ] false mergeを最優先にprecisionとrecallを再評価する
 - [ ] 同率1位アラートをコードレビューの入力として運用する
+- [ ] `lumibot`を将来候補として検討する（現状は未接続）
