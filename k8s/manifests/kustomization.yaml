@@ -10,4 +10,4 @@ resources:
 images:
   - name: ghcr.io/aobaiwaki123/lumi-exporter
     newName: ghcr.io/aobaiwaki123/lumi-exporter
-    newTag: dev
+    newTag: sha-1dd860d
