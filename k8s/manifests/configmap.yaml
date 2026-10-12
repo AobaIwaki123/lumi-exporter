@@ -18,6 +18,14 @@ data:
           "enabled": true
         },
         {
+          "id": "lumitlink-amamiyasaku-events",
+          "name": "雨宮サクのイベント / lumitlink",
+          "service": "lumitlink",
+          "kind": "event_feed",
+          "endpoint": "http://lumitlink.lumitlink.svc.cluster.local:8080/api/v1/events/amamiyasaku",
+          "enabled": true
+        },
+        {
           "id": "lumitree-ilife-official",
           "name": "iLiFE! public calendar / lumitree",
           "service": "lumitree",
