@@ -1,0 +1,184 @@
+{
+  "cases": [
+    {
+      "id": "exact-with-notation-variance",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-001",
+        "source_ref": {"source": "lumitree", "record_id": "tt-001", "url": "https://example.test/lumitree/tt-001", "collection_id": "idol-calendar"},
+        "title": "雨宮サク 生誕祭 2026",
+        "local_date": "2026-11-01",
+        "starts_at": "2026-11-01T17:00:00+09:00",
+        "timezone": "Asia/Tokyo",
+        "venue": "渋谷 CLUB QUATTRO",
+        "performers": ["雨宮サク", "Luminous"]
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-001",
+          "source_ref": {"source": "lumidive", "record_id": "ld-001", "url": "https://example.test/lumidive/ld-001"},
+          "title": "雨宮サク生誕祭2026",
+          "local_date": "2026-11-01",
+          "venue": "渋谷CLUB QUATTRO",
+          "performers": ["雨宮サク", "Luminous"]
+        },
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-002",
+          "source_ref": {"source": "lumidive", "record_id": "ld-002"},
+          "title": "雨宮サク 定期公演",
+          "local_date": "2026-11-01",
+          "venue": "新宿LOFT",
+          "performers": ["雨宮サク"]
+        }
+      ],
+      "expected": {"status": "matched", "candidate_id": "canonical-001"}
+    },
+    {
+      "id": "date-breaks-same-title",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-002",
+        "source_ref": {"source": "lumitree", "record_id": "tt-002", "collection_id": "idol-calendar"},
+        "title": "IDOL FESTIVAL vol.4",
+        "local_date": "2026-11-02",
+        "venue": "新宿LOFT",
+        "performers": ["Luminous"]
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-003",
+          "source_ref": {"source": "lumidive", "record_id": "ld-003"},
+          "title": "IDOL FESTIVAL Vol 4",
+          "local_date": "2026-11-02",
+          "venue": "新宿LOFT",
+          "performers": ["Luminous"]
+        },
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-004",
+          "source_ref": {"source": "lumidive", "record_id": "ld-004"},
+          "title": "IDOL FESTIVAL Vol 4",
+          "local_date": "2026-11-09",
+          "venue": "新宿LOFT",
+          "performers": ["Luminous"]
+        }
+      ],
+      "expected": {"status": "matched", "candidate_id": "canonical-003"}
+    },
+    {
+      "id": "top-score-tie",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-003",
+        "source_ref": {"source": "lumitree", "record_id": "tt-003"},
+        "title": "合同ライブ",
+        "local_date": "2026-11-03",
+        "venue": "下北沢ERA"
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-005",
+          "source_ref": {"source": "lumidive", "record_id": "ld-005"},
+          "title": "合同ライブ",
+          "local_date": "2026-11-03",
+          "venue": "下北沢ERA"
+        },
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-006",
+          "source_ref": {"source": "lumidive", "record_id": "ld-006"},
+          "title": "合同ライブ",
+          "local_date": "2026-11-03",
+          "venue": "下北沢ERA"
+        }
+      ],
+      "expected": {"status": "ambiguous"}
+    },
+    {
+      "id": "low-score-unmatched",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-004",
+        "source_ref": {"source": "lumitree", "record_id": "tt-004"},
+        "title": "小規模交流会",
+        "local_date": "2026-12-01",
+        "venue": "秋葉原"
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-007",
+          "source_ref": {"source": "lumidive", "record_id": "ld-007"},
+          "title": "別イベント",
+          "local_date": "2026-12-20",
+          "venue": "渋谷"
+        }
+      ],
+      "expected": {"status": "unmatched"}
+    },
+    {
+      "id": "margin-review-with-shared-performer",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-005",
+        "source_ref": {"source": "lumitree", "record_id": "tt-005"},
+        "title": "Spring Live",
+        "local_date": "2027-03-20",
+        "venue": "代官山UNIT",
+        "performers": ["A", "B"]
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-008",
+          "source_ref": {"source": "lumidive", "record_id": "ld-008"},
+          "title": "Spring Live",
+          "local_date": "2027-03-20",
+          "venue": "代官山UNIT",
+          "performers": ["A", "B"]
+        },
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-009",
+          "source_ref": {"source": "lumidive", "record_id": "ld-009"},
+          "title": "Spring Live",
+          "local_date": "2027-03-20",
+          "venue": "代官山UNIT",
+          "performers": ["A", "C"]
+        }
+      ],
+      "expected": {"status": "ambiguous"}
+    },
+    {
+      "id": "missing-optional-fields",
+      "query": {
+        "schema_version": "lumi.event.candidate.v1",
+        "id": "query-006",
+        "source_ref": {"source": "lumitree", "record_id": "tt-006"},
+        "title": "単独公演",
+        "local_date": "2027-04-01"
+      },
+      "candidates": [
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-010",
+          "source_ref": {"source": "lumidive", "record_id": "ld-010"},
+          "title": "単独公演",
+          "local_date": "2027-04-01"
+        },
+        {
+          "schema_version": "lumi.event.candidate.v1",
+          "id": "canonical-011",
+          "source_ref": {"source": "lumidive", "record_id": "ld-011"},
+          "title": "定期公演",
+          "local_date": "2027-04-01"
+        }
+      ],
+      "expected": {"status": "matched", "candidate_id": "canonical-010"}
+    }
+  ]
+}
