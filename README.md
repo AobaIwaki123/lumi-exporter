@@ -32,6 +32,7 @@ open http://127.0.0.1:8081/
 | サービス | adapter | endpoint |
 |---|---|---|
 | `lumitlink` | `entity.v1` | 雨宮サクの共通エンティティ |
+| `lumitlink` | `event_feed.v1` | 雨宮サクのLit.link掲載イベント |
 | `lumitree` | `lumitree_calendar` | `ilife_official`のイベント一覧 |
 | `lumidive` | `lumidive_event` | `plkt1022`のイベント |
 

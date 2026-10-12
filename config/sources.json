@@ -9,6 +9,14 @@
       "enabled": true
     },
     {
+      "id": "lumitlink-amamiyasaku-events",
+      "name": "雨宮サクのイベント / lumitlink",
+      "service": "lumitlink",
+      "kind": "event_feed",
+      "endpoint": "https://lumitlink.aooba.net/api/v1/events/amamiyasaku",
+      "enabled": true
+    },
+    {
       "id": "lumitree-ilife-official",
       "name": "iLiFE! public calendar / lumitree",
       "service": "lumitree",
