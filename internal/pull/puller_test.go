@@ -36,8 +36,8 @@ func TestPullNormalizesRegisteredFormats(t *testing.T) {
 	responses := map[string]string{
 		"/entity":   string(entityBody),
 		"/feed":     string(feedBody),
-		"/lumitree": `{"calendar":{"aliasCode":"idol-calendar","title":"アイドル","id":"calendar-1"},"events":[{"id":"tt-1","title":"秋ライブ","startAt":"2026-10-12T18:00:00+09:00","endAt":"2026-10-12T20:00:00+09:00","timezone":"Asia/Tokyo","location":"渋谷","url":"https://example.test/tt-1"}]}`,
-		"/lumidive": `{"success":true,"data":{"id":"td-1","name":"冬ライブ","url":"https://ticketdive.com/event/td-1","stages":[{"startAt":"2026-12-01T18:00:00+09:00","endAt":"2026-12-01T20:00:00+09:00","venue":{"name":"新宿"},"artists":[{"name":"A"},{"name":"B"}]}]}}`,
+		"/lumitree": `{"calendar":{"aliasCode":"idol-calendar","title":"アイドル","id":"calendar-1"},"events":[{"id":"tt-1","title":"秋ライブ","startAt":"2026-10-12T18:00:00+09:00","endAt":"2026-10-12T20:00:00+09:00","timezone":"Asia/Tokyo","location":"渋谷","url":"https://example.test/tt-1","links":[{"kind":"ticket","url":"https://tiget.net/events/tt-1","origin":"description"}]}]}`,
+		"/lumidive": `{"success":true,"data":{"id":"td-1","name":"冬ライブ","url":"https://ticketdive.com/event/td-1","shortUrl":"https://t-dv.com/td-1","stages":[{"startAt":"2026-12-01T18:00:00+09:00","endAt":"2026-12-01T20:00:00+09:00","venue":{"name":"新宿"},"artists":[{"name":"A"},{"name":"B"}]}]}}`,
 	}
 	client := &Client{HTTPClient: &http.Client{Timeout: 2 * time.Second, Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
 		body, ok := responses[request.URL.Path]
@@ -66,12 +66,12 @@ func TestPullNormalizesRegisteredFormats(t *testing.T) {
 			}
 		}},
 		{name: "lumitree", path: "/lumitree", kind: registry.KindLumitreeCalendar, check: func(t *testing.T, result Result) {
-			if result.Error != "" || len(result.Events) != 1 || result.Events[0].LocalDate != "2026-10-12" || result.Events[0].Venue != "渋谷" {
+			if result.Error != "" || len(result.Events) != 1 || result.Events[0].LocalDate != "2026-10-12" || result.Events[0].Venue != "渋谷" || len(result.Events[0].Links) != 1 || result.Events[0].Links[0].Kind != event.LinkKindTicket {
 				t.Fatalf("result = %#v", result)
 			}
 		}},
 		{name: "lumidive", path: "/lumidive", kind: registry.KindLumidiveEvent, check: func(t *testing.T, result Result) {
-			if result.Error != "" || len(result.Events) != 1 || len(result.Events[0].Performers) != 2 || result.Events[0].Venue != "新宿" {
+			if result.Error != "" || len(result.Events) != 1 || len(result.Events[0].Performers) != 2 || result.Events[0].Venue != "新宿" || len(result.Events[0].Links) != 2 || result.Events[0].Links[0].Kind != event.LinkKindTicket {
 				t.Fatalf("result = %#v", result)
 			}
 		}},

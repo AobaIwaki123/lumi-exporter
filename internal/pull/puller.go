@@ -144,13 +144,21 @@ type lumitreeCalendarResponse struct {
 }
 
 type lumitreeEvent struct {
-	ID       string  `json:"id"`
-	Title    string  `json:"title"`
-	StartAt  string  `json:"startAt"`
-	EndAt    string  `json:"endAt"`
-	Timezone string  `json:"timezone"`
-	Location *string `json:"location"`
-	URL      *string `json:"url"`
+	ID       string         `json:"id"`
+	Title    string         `json:"title"`
+	StartAt  string         `json:"startAt"`
+	EndAt    string         `json:"endAt"`
+	Timezone string         `json:"timezone"`
+	Location *string        `json:"location"`
+	URL      *string        `json:"url"`
+	Links    []lumitreeLink `json:"links"`
+}
+
+type lumitreeLink struct {
+	Kind   string `json:"kind"`
+	URL    string `json:"url"`
+	Label  string `json:"label"`
+	Origin string `json:"origin"`
 }
 
 func decodeLumitree(source registry.Source, body []byte, result *Result) error {
@@ -168,6 +176,13 @@ func decodeLumitree(source registry.Source, body []byte, result *Result) error {
 		if id == "" {
 			id = fmt.Sprintf("%s-%d", source.ID, index)
 		}
+		links := make([]event.Link, 0, len(item.Links))
+		for _, link := range item.Links {
+			if strings.TrimSpace(link.URL) == "" {
+				continue
+			}
+			links = append(links, event.Link{Kind: link.Kind, URL: link.URL, Label: link.Label, Origin: link.Origin})
+		}
 		result.Events = append(result.Events, event.Candidate{
 			SchemaVersion: event.CandidateSchemaVersion,
 			ID:            source.Service + ":" + id,
@@ -183,6 +198,7 @@ func decodeLumitree(source registry.Source, body []byte, result *Result) error {
 			EndsAt:    item.EndAt,
 			Timezone:  item.Timezone,
 			Venue:     stringPointer(item.Location),
+			Links:     links,
 		})
 	}
 	return nil
@@ -246,6 +262,19 @@ func decodeLumidive(source registry.Source, body []byte, result *Result) error {
 			performerNames = append(performerNames, performer.Name)
 		}
 	}
+	links := make([]event.Link, 0, 2)
+	seenURLs := make(map[string]struct{}, 2)
+	for _, ticketURL := range []string{value.Data.URL, value.Data.ShortURL} {
+		ticketURL = strings.TrimSpace(ticketURL)
+		if ticketURL == "" {
+			continue
+		}
+		if _, seen := seenURLs[ticketURL]; seen {
+			continue
+		}
+		seenURLs[ticketURL] = struct{}{}
+		links = append(links, event.Link{Kind: event.LinkKindTicket, URL: ticketURL, Label: "TicketDive", Origin: "structured_url"})
+	}
 	result.Events = []event.Candidate{{
 		SchemaVersion: event.CandidateSchemaVersion,
 		ID:            source.Service + ":" + id,
@@ -260,6 +289,7 @@ func decodeLumidive(source registry.Source, body []byte, result *Result) error {
 		EndsAt:     endAt,
 		Venue:      venue,
 		Performers: performerNames,
+		Links:      links,
 	}}
 	return nil
 }

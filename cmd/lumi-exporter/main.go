@@ -25,6 +25,8 @@ import (
 
 func main() {
 	serve := flag.Bool("serve", false, "pull型Webサービスを起動する")
+	catalog := flag.Bool("catalog", false, "登録済みソースをpullしてカタログJSONを出力する")
+	pullSourceID := flag.String("pull", "", "指定したsource IDだけをpullしてJSONを出力する")
 	inputPath := flag.String("input", "testdata/evaluation.json", "評価fixtureのJSONパス")
 	pretty := flag.Bool("pretty", true, "JSONをインデントして出力する")
 	registryPath := flag.String("registry", envString("LUMI_EXPORTER_REGISTRY", "config/sources.json"), "pull対象registryのJSONパス")
@@ -34,9 +36,14 @@ func main() {
 	flag.Parse()
 
 	var err error
-	if *serve {
+	switch {
+	case *serve:
 		err = serveWeb(*registryPath, *host, *port, *timeout)
-	} else {
+	case *catalog:
+		err = runCatalog(*registryPath, *timeout, *pretty)
+	case *pullSourceID != "":
+		err = runPull(*registryPath, *pullSourceID, *timeout, *pretty)
+	default:
 		err = run(*inputPath, *pretty)
 	}
 	if err != nil {
@@ -45,13 +52,17 @@ func main() {
 	}
 }
 
-func serveWeb(registryPath, host string, port int, timeout time.Duration) error {
-	file, err := os.Open(registryPath)
+func loadRegistry(path string) (registry.Config, error) {
+	file, err := os.Open(path)
 	if err != nil {
-		return fmt.Errorf("open source registry: %w", err)
+		return registry.Config{}, fmt.Errorf("open source registry: %w", err)
 	}
 	defer func() { _ = file.Close() }()
-	config, err := registry.Load(file)
+	return registry.Load(file)
+}
+
+func serveWeb(registryPath, host string, port int, timeout time.Duration) error {
+	config, err := loadRegistry(registryPath)
 	if err != nil {
 		return err
 	}
@@ -80,6 +91,36 @@ func serveWeb(registryPath, host string, port int, timeout time.Duration) error 
 		return fmt.Errorf("server failed: %w", err)
 	}
 	return nil
+}
+
+func runCatalog(registryPath string, timeout time.Duration, pretty bool) error {
+	config, err := loadRegistry(registryPath)
+	if err != nil {
+		return err
+	}
+	results := pull.PullAll(context.Background(), pull.NewClient(timeout), config)
+	return encodeJSON(web.Catalog{PulledAt: time.Now().UTC().Format(time.RFC3339Nano), Results: results}, pretty)
+}
+
+func runPull(registryPath, sourceID string, timeout time.Duration, pretty bool) error {
+	config, err := loadRegistry(registryPath)
+	if err != nil {
+		return err
+	}
+	source, ok := config.Find(sourceID)
+	if !ok {
+		return fmt.Errorf("source %q is not registered", sourceID)
+	}
+	result := pull.NewClient(timeout).Pull(context.Background(), source)
+	return encodeJSON(result, pretty)
+}
+
+func encodeJSON(payload any, pretty bool) error {
+	encoder := json.NewEncoder(os.Stdout)
+	if pretty {
+		encoder.SetIndent("", "  ")
+	}
+	return encoder.Encode(payload)
 }
 
 func run(inputPath string, pretty bool) error {

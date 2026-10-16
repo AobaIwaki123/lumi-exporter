@@ -25,7 +25,7 @@
 - `lumibot`のadapter
 - 定期poll、永続化、差分更新
 - endpoint許可リスト、認証、SSRF防御
-- `lumitree`と`lumidive`が直接`lumi-spec`のfeed envelopeを返すための各repo側変更
+- `lumitree`と`lumidive`のCLIが直接`lumi-spec`のfeed envelopeを返すための各repo側変更は別PRで管理する
 
 参考:
 
