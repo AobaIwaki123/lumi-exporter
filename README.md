@@ -2,12 +2,19 @@
 
 `lumitree`、`lumidive`などから得たイベント候補を、`lumi-spec`の共通契約で比較する名寄せPoCです。
 
-初期版は候補生成や外部API取得を含まないCLIです。ラベル付きfixtureを入力し、相対順位、スコア差、同率1位アラート、precision / recall / F1を再現可能なJSONとして出力します。
+CLIはラベル付きfixtureの評価に加えて、登録済みlumiサービスのlive pullも実行できます。候補取得・URL抽出は各サービス側のアダプターが担い、exporterはHTTP境界のJSONを共通契約へ取り込みます。
 
 ## 実行
 
 ```bash
 go run ./cmd/lumi-exporter -input testdata/evaluation.json
+```
+
+登録済みソースをCLIから確認する場合は次を使います。Webサーバーと同じregistry・pull処理を共有します。
+
+```bash
+go run ./cmd/lumi-exporter -catalog -registry config/sources.json
+go run ./cmd/lumi-exporter -pull lumitlink-amamiyasaku-events -registry config/sources.json
 ```
 
 `-pretty=false`を指定すると、1行JSONとして出力します。判定結果には次の情報を含みます。
@@ -27,7 +34,7 @@ go run ./cmd/lumi-exporter -serve
 open http://127.0.0.1:8081/
 ```
 
-登録内容は [`config/sources.json`](config/sources.json) で管理します。現在の初期登録は次の3つです。
+登録内容は [`config/sources.json`](config/sources.json) で管理します。現在の初期登録は次の4つです。
 
 | サービス | adapter | endpoint |
 |---|---|---|
@@ -43,7 +50,7 @@ APIは次の通りです。
 - `GET /api/v1/sources/{id}/pull`: 一つの登録先だけpullした結果
 - `GET /openapi.yaml`: WebサービスのAPI定義
 
-画面には、HTTPステータス、取得時間、endpoint、`lumi-spec`の正規化データ、生JSONを表示します。画面操作が実際のpullへ到達したことは、次のログで確認できます。
+画面とCLIには、HTTPステータス、取得時間、endpoint、`lumi-spec`の正規化データ、生JSONを表示します。画面操作が実際のpullへ到達したことは、次のログで確認できます。
 
 ```bash
 tail -f /tmp/lumi-exporter.log
@@ -56,6 +63,7 @@ kubectl logs -f deployment/lumi-exporter -n lumi-exporter
 ## 設計境界
 
 - 候補の取得・正規化は入力アダプターの責務であり、このPoCは候補集合のランキングに集中します。
+- `links`の抽出・分類は各サービスのサイト構造に依存するため、`lumitlink`、`lumitree`、`lumidive`側で行います。
 - `lumi-spec`を唯一の共有依存とし、`lumitree`や`lumidive`の実装を直接importしません。
 - 同率1位やスコア差不足は成功扱いにせず、`ambiguous`としてレビューへ送ります。
 - しきい値は実データのラベル付きfixtureで評価してから変更します。

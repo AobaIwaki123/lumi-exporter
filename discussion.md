@@ -32,7 +32,7 @@
 
 ## 現在地 (2026-10-12)
 
-- `lumi-spec` v0.1.1を利用している。
+- `lumi-spec` v0.1.1を利用している。`links`追加後はspec側のコミットを依存先へ固定する。
 - `lumi-exporter`は`lumi-exporter.aooba.net`で稼働し、`/healthz`と`/api/v1/catalog`がHTTP 200を返す。
 - `lumitlink`、`lumitree`、`lumidive`の3ソースを実データで取得できる。
 - catalogの確認結果は、Entity 1件、lumitreeイベント12件、lumidiveイベント1件。
